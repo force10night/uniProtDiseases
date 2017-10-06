@@ -1,0 +1,311 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+ 
+ <modelVersion>4.0.0</modelVersion>
+ 
+ <parent>
+		<artifactId>ujdk-parent</artifactId>
+		<groupId>uk.ac.ebi.uniprot</groupId>
+		<version>1.0</version>
+		<relativePath>../uniprot-ujdk-parent</relativePath>
+	</parent>
+ 
+ 
+  
+  <groupId>uniProtDiseases</groupId>
+  <artifactId>uniProtDiseases</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  
+  
+  
+  <properties>
+		<localrepo>${project.parent.relativePath}/local-lib</localrepo>
+		<jackson.version>2.4.3</jackson.version>
+		<google.guava.version>17.0</google.guava.version>
+		<!--Specifies a project wide location for the jacoco reports, instead of 
+			a per module basis -->
+		<!--  jacoco.outputDir>${project.basedir}/../target</jacoco.outputDir-->
+		<mockito-version>1.9.5</mockito-version>
+		<powermock-version>1.6.2</powermock-version>
+		<slf4j.version>1.7.20</slf4j.version>
+		<logback.version>1.1.2</logback.version>
+		<find-bugs.version>2.0.3</find-bugs.version>
+		<guice.version>4.1.0</guice.version>
+		<jdbc-stdext.version>2.0</jdbc-stdext.version>
+                
+                
+                
+                
+	</properties>
+  
+  
+  
+  
+  <dependencies>
+  <dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-api</artifactId>
+				<version>${slf4j.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-simple</artifactId>
+				<version>${slf4j.version}</version>
+			</dependency>
+<!-- https://mvnrepository.com/artifact/org.jvnet.jaxb2_commons/jaxb2-basics-runtime -->
+<dependency>
+    <groupId>org.jvnet.jaxb2_commons</groupId>
+    <artifactId>jaxb2-basics-runtime</artifactId>
+    <version>1.11.1</version>
+</dependency>
+  
+  <dependency>
+			<groupId>com.google.inject</groupId>
+			<artifactId>guice</artifactId>
+		</dependency>
+		
+		<dependency>
+    <groupId>com.beust</groupId>
+    <artifactId>jcommander</artifactId>
+    <version>1.47</version>
+       </dependency>
+  	
+  	<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+
+<dependency>
+			<groupId>org.hamcrest</groupId>
+			<artifactId>hamcrest-all</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+  </dependencies>
+  
+  
+ 
+  
+  
+  
+  
+  
+  
+  <build>
+  
+  
+    <plugins>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+       <configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+					<fork>true</fork>
+					<meminitial>128m</meminitial>
+					<maxmem>512m</maxmem>
+					<showDeprecation>true</showDeprecation>
+					<showWarnings>true</showWarnings>
+					<!-- TODO <executable>${env.JAVA_HOME_7}/bin/javac</executable> -->
+				</configuration>
+      </plugin>
+      
+       
+    <plugin>
+				<groupId>org.jvnet.jaxb2.maven2</groupId>
+				<artifactId>maven-jaxb2-plugin</artifactId>
+				<version>0.13.1</version> 
+				<executions>
+					<execution>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<schemaDirectory>${project.basedir}/src/main/resources/xsd</schemaDirectory>
+							<generatePackage>uk.ac.ebi.uniprot.services.feature.jaxb</generatePackage>
+							<schemaIncludes>
+								<include>feature.xsd</include>
+							</schemaIncludes>
+							<generateDirectory>${project.build.directory}/generated-sources</generateDirectory>
+							<extension>true</extension>
+							<args>
+								<arg>-no-header</arg>
+								<arg>-Xxew</arg>
+								<arg>-Xxew:instantiate lazy</arg>
+								<arg>-XtoString</arg>
+								<arg>-Xequals</arg>
+								<arg>-XhashCode</arg>
+							</args>
+							<plugins>
+								<plugin>
+									<groupId>org.jvnet.jaxb2_commons</groupId>
+									<artifactId>jaxb2-basics</artifactId>
+									<version>0.9.5</version>
+								</plugin>
+								<plugin>
+									<groupId>com.github.jaxb-xew-plugin</groupId>
+									<artifactId>jaxb-xew-plugin</artifactId>
+									<version>1.5</version>
+								</plugin>
+							</plugins>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+  
+ <plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<!-- omit version, because we inherit it from the parent pom -->
+				<configuration>
+					<forkCount>6</forkCount>
+					<reuseForks>false</reuseForks>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<!-- omit version, because we inherit it from the parent pom -->
+				<configuration>
+					<forkCount>1</forkCount>
+					<reuseForks>false</reuseForks>
+				</configuration>
+			</plugin>
+      
+      
+        
+		    <!-- The reason why it is put here, instead of using the profile defined in the parent module, is because the
+     shade plugin does not support shading of maven projects with parent poms. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+           <!--       <version>2.3</version>   -->  
+                <configuration>
+                  <shadedArtifactAttached>true</shadedArtifactAttached>
+                  <shadedClassifierName>shade</shadedClassifierName>
+                  <filters>
+                     <filter>
+                       <artifact>*:*</artifact>
+                          <excludes>
+                             <exclude>META-INF/*.SF</exclude>
+                             <exclude>META-INF/*.DSA</exclude>
+                             <exclude>META-INF/*.RSA</exclude>
+                          </excludes>
+                     </filter>
+                  </filters>
+                </configuration>
+                <executions>
+                   <execution>
+                     <phase>package</phase>
+                       <goals>
+                          <goal>shade</goal>
+                       </goals>
+                   </execution>
+                </executions>
+            </plugin>
+      <!--
+           copy shaded jar and run scripts to production's location 
+      -->
+            <plugin>
+               <artifactId>maven-resources-plugin</artifactId>
+               <version>2.6</version>
+               <executions>
+                  <execution>
+                     <id>copy-resources-bin</id>
+                     <phase>deploy</phase>
+                     <goals>
+                       <goal>copy-resources</goal>
+                     </goals>
+                     <configuration>
+                        <outputDirectory>${production-ready-release-dir}/bin</outputDirectory>
+                        <resources>
+                        <!--
+                            copy run scripts to location which can see uber jar 
+                        -->
+                          <resource>
+                             <directory>${basedir}/src/bin</directory>
+                             <filtering>true</filtering>
+                          </resource>
+                        </resources>
+                     </configuration>
+                   </execution>
+                   <execution>
+                      <id>copy-resources-lib</id>
+                      <phase>deploy</phase>
+                      <goals>
+                        <goal>copy-resources</goal>
+                      </goals>
+                      <configuration>
+                         <outputDirectory>${production-ready-release-dir}/lib</outputDirectory>
+                         <resources>
+                         <!--  copy uber jar to central lib location  -->
+                            <resource>
+                               <directory>${project.build.directory}</directory>
+                               <includes>
+                                  <include>${project.artifactId}*shade.jar</include>
+                               </includes>
+                            </resource>
+                            <resource>
+                             <directory>${basedir}/src/resources</directory>
+                             <filtering>true</filtering>
+                            </resource>
+                         </resources>
+                      </configuration>
+                  </execution>
+               </executions>
+            </plugin>
+            <!--  make the run scripts executable  -->
+            <plugin>
+               <groupId>org.apache.maven.plugins</groupId>
+               <artifactId>maven-antrun-plugin</artifactId>
+               <version>1.7</version>
+               <executions>
+                  <execution>
+                     <id>create-prod-dirs</id>
+                     <phase>install</phase>
+                     <configuration>
+                        <target>
+                           <echo>creating release lib+bin directories</echo>
+                           <mkdir dir="${production-ready-release-dir}/bin"/>
+                           <mkdir dir="${production-ready-release-dir}/lib"/>
+                        </target>
+                     </configuration>
+                     <goals>
+                        <goal>run</goal>
+                     </goals>
+                  </execution>
+                  <execution>
+                     <id>process-classes</id>
+                     <phase>deploy</phase>
+                     <configuration>
+                        <target>
+                           <chmod perm="755">
+                              <fileset dir="${production-ready-release-dir}/bin"/>
+                           </chmod>
+                           <exec executable="sed" inputstring="${production-ready-release-dir}" outputproperty="production-symlink-dir">
+                              <arg value="s/^\(.*\)\([0-9]\{4\}\.[0-9]\{1,2\}\)\([^\/]*\)\(.*\)/\1\2-production/"/>
+                              <!--
+                                <arg value="s/\([0-9]\{4\}\.[0-9]\{2\}\)\([^\/]*\)/\1-production\2/"/>
+                              -->
+                           </exec>
+                           <echo>${production-symlink-dir}</echo>
+                           <mkdir dir="${production-symlink-dir}"/>
+                           <symlink link="${production-symlink-dir}" resource="${production-ready-release-dir}" overwrite="true"/>
+                        </target>
+                     </configuration>
+                     <goals>
+                        <goal>run</goal>
+                     </goals>
+                  </execution>
+              </executions>
+          </plugin>
+      
+    </plugins>
+  </build>
+  
+  
+  
+</project>
